@@ -1,0 +1,25 @@
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: flowledger-postgres
+    environment:
+      POSTGRES_DB: flowledger
+      POSTGRES_USER: flowledger
+      POSTGRES_PASSWORD: flowledger
+    ports:
+      - "5432:5432"
+    volumes:
+      - flowledger_postgres:/var/lib/postgresql/data
+
+  redis:
+    image: redis:8
+    container_name: flowledger-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - flowledger_redis:/data
+
+volumes:
+  flowledger_postgres:
+  flowledger_redis:

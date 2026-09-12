@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: flow-ledger
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/flowledger
+    username: flowledger
+    password: flowledger
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    enabled: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
