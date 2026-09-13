@@ -1,4 +1,4 @@
-package org.fl.flowledger.audit_log.dto;
+package org.fl.flowledger.audit.dto;
 
 public enum AuditAction {
     LOGIN,

@@ -2,13 +2,15 @@ package org.fl.flowledger.audit.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.fl.flowledger.audit_log.dto.AuditAction;
-import org.fl.flowledger.audit_log.dto.AuditEntityType;
+import lombok.experimental.SuperBuilder;
+import org.fl.flowledger.audit.dto.AuditAction;
+import org.fl.flowledger.audit.dto.AuditEntityType;
+import org.fl.flowledger.common.entity.BaseEntity;
 import org.fl.flowledger.user.entity.User;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.time.Instant;
+import java.net.InetAddress;
 import java.util.Map;
 import java.util.UUID;
 
@@ -18,15 +20,10 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@SuperBuilder
 @ToString(exclude = {"user"})
-public class AuditLog {
+public class AuditLog extends BaseEntity {
 
-    @EqualsAndHashCode.Include
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -43,14 +40,11 @@ public class AuditLog {
     @Column(name = "entity_id")
     private UUID entityId;
 
-    @Column(columnDefinition = "jsonb")
     @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
     private Map<String, Object> metadata;
 
-    @Column(name = "ip_address", length = 45)
-    private String ipAddress;
+    @Column(name = "ip_address", columnDefinition = "inet")
+    private InetAddress ipAddress;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @Builder.Default
-    private Instant createdAt = Instant.now();
 }

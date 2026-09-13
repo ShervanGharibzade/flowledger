@@ -13,7 +13,7 @@ import org.fl.flowledger.wallet.entity.Wallet;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "ledgers")
+@Table(name = "ledger_entries")
 @Getter
 @Setter
 @AllArgsConstructor

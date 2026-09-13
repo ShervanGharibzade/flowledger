@@ -20,10 +20,10 @@ import org.fl.flowledger.user.dto.UserStatus;
 public class User extends BaseEntity {
 
     @EqualsAndHashCode.Include
-    @Column(nullable = false, unique = true, length = 255)
+    @Column(nullable = false, unique = true, length = 255,updatable = false)
     private String email;
 
-    @Column(nullable = false, length = 255,name = "passord_hash")
+    @Column(nullable = false, length = 255,name = "password_hash")
     private String passwordHash;
 
     @Column(name = "last_name", nullable = false, length = 100)
