@@ -11,6 +11,7 @@ import java.util.UUID;
 
 @Repository
 public interface LedgerRepository extends JpaRepository<Ledger, Long> {
-    List<Ledger> findAllByWalletIdOrderByCreatedAtDesc(UUID walletId);
+    List<Ledger> findAllByWallet_UuidOrderByCreatedAtDesc(UUID walletUuid);
 
+    List<Ledger> findAllByTransfer_UuidOrderByCreatedAtDesc(UUID transferUuid);
 }
