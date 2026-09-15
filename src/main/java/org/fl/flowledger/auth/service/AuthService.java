@@ -9,10 +9,13 @@ import org.fl.flowledger.user.dto.CreateUserDto;
 import org.fl.flowledger.user.dto.UserResponse;
 import org.springframework.http.ResponseEntity;
 
+import java.net.InetAddress;
+
 public interface AuthService {
     String register(CreateUserDto dto) throws IllegalAccessException;
     LoginResult login(LoginDto dto);
-    String logout();
+    String logout(String refreshToken, InetAddress ipAddress);
     String changePassword(ChangePasswordDto dto);
     TokenResponse refresh(String refreshToken);
+    Long getCurrentUserId();
 }

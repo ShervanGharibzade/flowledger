@@ -15,12 +15,12 @@ public class JwtService {
 
     private final JwtEncoder jwtEncoder;
 
-    public String generateAccessToken(String email, String role) {
+    public String generateAccessToken(String id, String role) {
 
         Instant now = Instant.now();
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .subject(email)
+                .subject(id)
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(900))
                 .claim("role", role)

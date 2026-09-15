@@ -12,12 +12,12 @@ import java.util.UUID;
 
 @Service
 public interface UserService {
-    ResponseEntity<UserResponse> getUser(UUID uuid);
+    UserResponse getUser(UUID uuid);
 
-    ResponseEntity<UserResponse> getUserByEmail(String email);
+    UserResponse getUserByEmail(String email);
 
-    ResponseEntity<String> updateUser(UpdateUserRequest user);
-    ResponseEntity<String> changePassword(ChangePasswordDto changePasswordDto);
+    String updateUser(UpdateUserRequest user);
+    String changePassword(ChangePasswordDto changePasswordDto);
 
-    ResponseEntity<String> deleteUser(UUID uuid);
+    String deleteUser(UUID uuid);
 }

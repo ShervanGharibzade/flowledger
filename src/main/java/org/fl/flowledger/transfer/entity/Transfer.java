@@ -10,6 +10,7 @@ import org.fl.flowledger.wallet.entity.Wallet;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "transfers")
@@ -38,24 +39,26 @@ public class Transfer extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private TransferStatus status;
+    @Builder.Default
+    private TransferStatus status = TransferStatus.PENDING;
 
-    @Column(
-            name = "idempotency_key",
-            nullable = false,
-            unique = true,
-            updatable = false,
-            length = 100
-    )
+    @Column(name = "idempotency_key", nullable = false, unique = true)
     private String idempotencyKey;
 
-    @Column(
-            name = "reference",
-            unique = true,
-            length = 100
-    )
+    @Column(nullable = false, unique = true)
     private String reference;
 
-    @Column(name = "completed_at")
     private Instant completedAt;
+
+
+    @PrePersist
+    private void generateReference() {
+        if (reference == null) {
+            reference = "TRF-" + UUID.randomUUID()
+                    .toString()
+                    .replace("-", "")
+                    .substring(0, 12)
+                    .toUpperCase();
+        }
+    }
 }

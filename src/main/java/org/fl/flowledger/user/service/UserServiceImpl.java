@@ -10,7 +10,6 @@ import org.fl.flowledger.user.dto.UserResponse;
 import org.fl.flowledger.user.entity.User;
 import org.fl.flowledger.user.mapper.UserMapper;
 import org.fl.flowledger.user.repository.UserRepository;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +26,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public ResponseEntity<UserResponse> getUser(UUID uuid) {
+    public UserResponse getUser(UUID uuid) {
 
         User user = userRepository.findByUuid(uuid)
                 .orElseThrow(() ->
@@ -37,14 +36,13 @@ public class UserServiceImpl implements UserService {
                         )
                 );
 
-        return ResponseEntity.ok(
-                userMapper.toResponse(user)
-        );
+        return userMapper.toResponse(user);
+
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ResponseEntity<UserResponse> getUserByEmail(String email) {
+    public UserResponse getUserByEmail(String email) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
@@ -55,14 +53,12 @@ public class UserServiceImpl implements UserService {
                         )
                 );
 
-        return ResponseEntity.ok(
-                userMapper.toResponse(user)
-        );
+        return userMapper.toResponse(user);
     }
 
     @Override
     @Transactional
-    public ResponseEntity<String> updateUser(UpdateUserRequest req) {
+    public String updateUser(UpdateUserRequest req) {
 
         User user = userRepository.findByUuid(req.uuid())
                 .orElseThrow(() ->
@@ -74,15 +70,12 @@ public class UserServiceImpl implements UserService {
 
         userMapper.updateUserFromRequest(req, user);
 
-        return ResponseEntity.ok(
-                "User with this uuid %s is updated"
-                        .formatted(req.uuid())
-        );
+        return "User with this uuid %s is updated".formatted(req.uuid());
     }
 
     @Override
     @Transactional
-    public ResponseEntity<String> changePassword(ChangePasswordDto dto) {
+    public String changePassword(ChangePasswordDto dto) {
 
         User user = userRepository.findByEmail(dto.email())
                 .orElseThrow(() ->
@@ -113,14 +106,12 @@ public class UserServiceImpl implements UserService {
                 passwordEncoder.encode(dto.newPassword())
         );
 
-        return ResponseEntity.ok(
-                "Password changed successfully"
-        );
+        return "Password changed successfully";
     }
 
     @Override
     @Transactional
-    public ResponseEntity<String> deleteUser(UUID uuid) {
+    public String deleteUser(UUID uuid) {
 
         User user = userRepository.findByUuid(uuid)
                 .orElseThrow(() ->
@@ -132,8 +123,6 @@ public class UserServiceImpl implements UserService {
 
         userRepository.delete(user);
 
-        return ResponseEntity.ok(
-                "User deleted successfully."
-        );
+        return "User deleted successfully.";
     }
 }

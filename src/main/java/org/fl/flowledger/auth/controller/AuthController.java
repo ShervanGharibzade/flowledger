@@ -1,5 +1,6 @@
 package org.fl.flowledger.auth.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.fl.flowledger.auth.AuthMapper.AuthMapper;
@@ -14,6 +15,8 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.Duration;
 
 @RestController
@@ -52,6 +55,34 @@ public class AuthController {
         );
 
         return ResponseEntity.ok(authMapper.toResponse(data));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(
+            HttpServletRequest request,
+            @CookieValue("refresh_token") String refreshToken,
+            HttpServletResponse response
+    ) throws UnknownHostException {
+        InetAddress ipAddress =
+                InetAddress.getByName(request.getRemoteAddr());
+
+        ResponseCookie cookie = ResponseCookie
+                .from("refresh_token", "")
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .path("/api/v1/auth")
+                .maxAge(0)
+                .build();
+
+        response.addHeader(
+                HttpHeaders.SET_COOKIE,
+                cookie.toString()
+        );
+
+        return ResponseEntity.ok(
+                authService.logout(refreshToken, ipAddress)
+        );
     }
 
     @PostMapping("/register")

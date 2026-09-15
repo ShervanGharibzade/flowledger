@@ -29,16 +29,18 @@ public class Wallet extends BaseEntity {
     @Column(nullable = false, length = 10)
     private Currency currency;
 
+    @Builder.Default
     @Column(
             nullable = false,
             precision = 19,
             scale = 2
     )
-    private BigDecimal balance;
+    private BigDecimal balance = BigDecimal.ZERO;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private WalletStatus status;
+    private WalletStatus status = WalletStatus.ACTIVE;
 
     @Version
     private Long version;

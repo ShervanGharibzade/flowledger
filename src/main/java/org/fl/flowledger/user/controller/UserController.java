@@ -20,6 +20,6 @@ public class UserController {
 
     @GetMapping("/me/{uuid}")
     public ResponseEntity<UserResponse> me(@PathVariable UUID uuid) {
-        return userService.getUser(uuid);
+        return ResponseEntity.ok(userService.getUser(uuid));
     }
 }

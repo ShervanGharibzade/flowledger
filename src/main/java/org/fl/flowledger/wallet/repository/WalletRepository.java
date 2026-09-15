@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface WalletRepository extends JpaRepository<Wallet, Long> {
@@ -14,8 +15,15 @@ public interface WalletRepository extends JpaRepository<Wallet, Long> {
 
     boolean existsByUserId(Long userId);
 
-    List<Wallet> findAllByUserId(Long userId);
+    List<Wallet> findAllByUserId(Long id);
+
+    boolean existsByUserIdAndCurrency(UUID uuid, Currency currency);
 
     Optional<Wallet> findByUserIdAndCurrency(Long userId, Currency currency);
 
+    Optional<Wallet> findWalletByIdAndUserId(UUID WalletId, Long userId);
+
+    Optional<Wallet> findByUuid(UUID uuid);
+
+    Optional<Wallet> findByUuidForUpdate(UUID uuid);
 }
