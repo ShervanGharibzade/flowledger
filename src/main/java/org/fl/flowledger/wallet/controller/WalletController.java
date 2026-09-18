@@ -1,7 +1,7 @@
 package org.fl.flowledger.wallet.controller;
 
 
-import lombok.NoArgsConstructor;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.fl.flowledger.auth.service.AuthServiceImpl;
 import org.fl.flowledger.wallet.dto.CreateWalletDto;
@@ -25,7 +25,7 @@ public class WalletController {
 
         @PostMapping
         public ResponseEntity<WalletResponse> create(
-                @RequestBody CreateWalletDto dto
+                @Valid @RequestBody CreateWalletDto dto
         ) {
             Long userId = authenticationService.getCurrentUserId();
 
@@ -36,7 +36,7 @@ public class WalletController {
 
         @DeleteMapping
         public ResponseEntity<Void> delete(
-                @RequestBody DeleteWalletDto dto
+                @Valid @RequestBody DeleteWalletDto dto
         ) {
             Long userId = authenticationService.getCurrentUserId();
 

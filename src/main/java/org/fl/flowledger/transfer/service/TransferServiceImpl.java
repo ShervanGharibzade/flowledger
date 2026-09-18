@@ -216,11 +216,22 @@ public class TransferServiceImpl implements TransferService {
     @Transactional
     public void cancelTransfer(UUID transferId) {
 
+        Long userId = authService.getCurrentUserId();
+
         Transfer transfer = transferRepository
                 .findByUuid(transferId)
                 .orElseThrow(() ->
                         new TransferNotFoundException("Transfer not found")
                 );
+
+        boolean owns = transfer.getSenderWallet().getUser().getId().equals(userId)
+                || transfer.getReceiverWallet().getUser().getId().equals(userId);
+
+        if (!owns) {
+            throw new UnauthorizedWalletAccessException(
+                    "You do not have access to this transfer"
+            );
+        }
 
         if (transfer.getStatus() != TransferStatus.PENDING) {
             throw new IllegalStateException(

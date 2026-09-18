@@ -1,8 +1,6 @@
 package org.fl.flowledger.wallet.service;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
-import org.fl.flowledger.common.exception.RequesterIdConflictBadRequestException;
 import org.fl.flowledger.common.exception.ResourceNotFoundException;
 import org.fl.flowledger.common.exception.WalletAccessDeniedException;
 import org.fl.flowledger.common.exception.WalletBadRequestException;
@@ -12,14 +10,11 @@ import org.fl.flowledger.wallet.Mapper.WalletMapper;
 import org.fl.flowledger.wallet.dto.*;
 import org.fl.flowledger.wallet.entity.Wallet;
 import org.fl.flowledger.wallet.repository.WalletRepository;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.nio.file.AccessDeniedException;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -32,23 +27,16 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional
-    public WalletResponse create(CreateWalletDto dto,Long userId) {
-        User userFromReq = userRepository.findById(userId).orElseThrow(
-                ()-> new ResourceNotFoundException("User",userId)
+    public WalletResponse create(CreateWalletDto dto, Long userId) {
+
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new ResourceNotFoundException("User", userId)
         );
 
-        User user = userRepository.findByUuid(dto.uuid()).orElseThrow(
-                ()-> new ResourceNotFoundException("User",dto.uuid())
-        );
+        boolean walletExists = walletRepository.existsByUserIdAndCurrency(user.getId(), dto.currency());
 
-        if (Objects.equals(userFromReq.getId(), user.getId())) {
-            throw new RequesterIdConflictBadRequestException();
-        }
-
-        boolean WalletExists = walletRepository.existsByUserIdAndCurrency(user.getUuid(),dto.currency());
-
-        if (WalletExists) {
-            throw new BadCredentialsException("Wallet already exists for this currency");
+        if (walletExists) {
+            throw new WalletBadRequestException("Wallet already exists for this currency");
         }
 
         Wallet wallet = Wallet.builder()
@@ -63,38 +51,25 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional
-    public String remove(DeleteWalletDto dto,Long userId) {
-        User userFromReq = userRepository.findById(userId).orElseThrow(
-                ()-> new ResourceNotFoundException("User",userId)
-        );
+    public String remove(DeleteWalletDto dto, Long userId) {
 
         Wallet wallet = walletRepository.findByUuid(dto.walletUuId()).orElseThrow(
-                () -> new ResourceNotFoundException("Wallet",dto.walletUuId())
+                () -> new ResourceNotFoundException("Wallet", dto.walletUuId())
         );
 
-
-        if(wallet.getBalance().compareTo(BigDecimal.ZERO) != 0) {
+        if (wallet.getBalance().compareTo(BigDecimal.ZERO) != 0) {
             throw new WalletBadRequestException();
         }
 
-        User user = userRepository.findByUuid(dto.UserUuid()).orElseThrow(
-                () -> new ResourceNotFoundException("User",dto.UserUuid())
-        );
+        boolean isOwner = wallet.getUser().getId().equals(userId);
 
-
-        if (Objects.equals(userFromReq.getId(), user.getId())) {
-            throw new RequesterIdConflictBadRequestException();
-        }
-
-        boolean isOwner = wallet.getUser().getUuid().equals(user.getUuid());
-
-        if(!isOwner) {
+        if (!isOwner) {
             throw new WalletAccessDeniedException();
         }
 
         walletRepository.delete(wallet);
 
-        return "Wallet with this id:%S removed".formatted(wallet.getUuid());
+        return "Wallet with this id:%s removed".formatted(wallet.getUuid());
     }
 
     @Override

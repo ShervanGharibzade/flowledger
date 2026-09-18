@@ -1,9 +1,11 @@
 package org.fl.flowledger.wallet.dto;
 
+import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
+
 public record DeleteWalletDto(
-        UUID UserUuid,
+        @NotNull
         UUID walletUuId
 ) {
 }

@@ -1,9 +1,10 @@
 package org.fl.flowledger.wallet.dto;
 
-import java.util.UUID;
+import jakarta.validation.constraints.NotNull;
+
 
 public record CreateWalletDto(
-        UUID uuid,
+        @NotNull
         Currency currency
 ) {
 }

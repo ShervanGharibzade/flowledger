@@ -4,6 +4,8 @@ package org.fl.flowledger.user.service;
 import lombok.RequiredArgsConstructor;
 import org.fl.flowledger.common.exception.BadCredentialsException;
 import org.fl.flowledger.common.exception.ResourceNotFoundException;
+import org.fl.flowledger.common.exception.UserNotFoundedException;
+import org.fl.flowledger.common.security.RefreshTokenService;
 import org.fl.flowledger.user.dto.ChangePasswordDto;
 import org.fl.flowledger.user.dto.UpdateUserRequest;
 import org.fl.flowledger.user.dto.UserResponse;
@@ -23,6 +25,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     @Transactional(readOnly = true)
@@ -38,6 +41,16 @@ public class UserServiceImpl implements UserService {
 
         return userMapper.toResponse(user);
 
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserResponse getUserById(Long id) {
+
+        User user = userRepository.findById(id)
+                .orElseThrow(UserNotFoundedException::new);
+
+        return userMapper.toResponse(user);
     }
 
     @Override
@@ -75,16 +88,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public String changePassword(ChangePasswordDto dto) {
+    public String changePassword(Long userId, ChangePasswordDto dto) {
 
-        User user = userRepository.findByEmail(dto.email())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "User",
-                                "email",
-                                dto.email()
-                        )
-                );
+        // userId comes from the authenticated principal (see UserController),
+        // never from client input, so this can only ever change the caller's
+        // own password.
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundedException::new);
 
         if (!passwordEncoder.matches(
                 dto.currentPassword(),
@@ -105,6 +115,10 @@ public class UserServiceImpl implements UserService {
         user.setPasswordHash(
                 passwordEncoder.encode(dto.newPassword())
         );
+
+        // Force re-authentication on every other device/session once the
+        // password changes, so a stolen refresh token stops working too.
+        refreshTokenService.revokeAll(userId);
 
         return "Password changed successfully";
     }

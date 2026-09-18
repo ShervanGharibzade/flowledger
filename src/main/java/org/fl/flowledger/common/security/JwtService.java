@@ -13,6 +13,10 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class JwtService {
 
+    public static final String ISSUER = "https://flow-ledger.internal";
+
+    private static final long ACCESS_TOKEN_TTL_SECONDS = 900; // 15 minutes
+
     private final JwtEncoder jwtEncoder;
 
     public String generateAccessToken(String id, String role) {
@@ -20,9 +24,10 @@ public class JwtService {
         Instant now = Instant.now();
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer(ISSUER)
                 .subject(id)
                 .issuedAt(now)
-                .expiresAt(now.plusSeconds(900))
+                .expiresAt(now.plusSeconds(ACCESS_TOKEN_TTL_SECONDS))
                 .claim("role", role)
                 .build();
 
