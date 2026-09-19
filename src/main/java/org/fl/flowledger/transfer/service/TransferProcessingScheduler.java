@@ -1,4 +1,4 @@
-package org.fl.flowledger.transfer.service;
+package org.fl.flowledger.transfer.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +40,9 @@ public class TransferProcessingScheduler {
             try {
                 transferService.processTransfer(id);
             } catch (Exception e) {
+                // processTransfer already records FAILED status internally
+                // on exception (via its own REQUIRES_NEW block) — this
+                // catch just stops one bad transfer from killing the batch.
                 log.error("Failed to process transfer {}", id, e);
             }
         }

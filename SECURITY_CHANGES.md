@@ -135,7 +135,46 @@ behavioral changes into a security-fix pass:
   wallets/transfers). Given how easily the two critical bugs above hid in
   this codebase, this is the highest-value next investment.
 
-**Note:** I could not run `mvn compile` in this environment (no network
-access to Maven Central, no pre-populated local repo), so these changes
-are carefully hand-reviewed but not build-verified. Please run
-`./mvnw clean verify` before deploying.
+## Tests added
+
+All new tests are plain JUnit 5 + Mockito unit tests (`src/test/java/...`),
+deliberately avoiding `@SpringBootTest`/`@WebMvcTest` so they run without a
+database or Redis and don't depend on test-slice APIs that couldn't be
+verified against this Spring Boot version in this environment. Each one maps
+to a fix above:
+
+- `AuthServiceImplTest` — register/login/refresh/logout/getCurrentUserId,
+  including a direct regression test that login never issues a
+  `ROLE_`-prefixed role claim, and that `getCurrentUserId()` parses the
+  numeric principal name rather than treating it as an email.
+- `RefreshTokenServiceTest` — create/rotate/revoke/revokeAll against a
+  mocked Redis template.
+- `JwtAuthenticationConverterTest` — the most direct regression test for the
+  double `ROLE_ROLE_USER` bug: asserts exactly one `ROLE_` prefix is ever
+  produced, for both `USER` and `ADMIN`.
+- `GlobalExceptionHandlerTest` — every handler maps to the intended HTTP
+  status, including that an unexpected exception's real message never
+  leaks into the response body.
+- `WalletServiceImplTest` — wallet creation is always scoped to the caller,
+  duplicate-currency rejection, and delete ownership enforcement (regression
+  test for the inverted requester/target check).
+- `TransferServiceImplTest` — `cancelTransfer` regression tests: sender can
+  cancel, receiver can cancel, a third party is rejected (the exact IDOR
+  that was fixed), and only `PENDING` transfers can be cancelled.
+- `AuthControllerTest` — cookie attributes (`HttpOnly`, `Secure`,
+  `Path=/api/v1/auth`) on login/refresh, cookie rotation on refresh, and
+  idempotent no-cookie logout.
+- `UserControllerTest` — `/me` and change-password are scoped to
+  `authService.getCurrentUserId()`, never a client-supplied id (regression
+  test for the old `/users/me/{uuid}` IDOR).
+
+**Note:** `FlowLedgerApplicationTests` (pre-existing, `@SpringBootTest`)
+loads the full application context and therefore needs Postgres + Redis
+reachable (`docker compose up -d`) to pass — the new unit tests above do
+not need that and will run standalone via `./mvnw test`.
+
+**Same build-verification caveat as everywhere else in this project:** I
+could not run `mvn test` in this environment (no network access, no local
+Maven cache), so these are carefully hand-written and reviewed against the
+exact method signatures in this codebase, but not build-verified. Run
+`./mvnw test` and send me any compile errors or failures.

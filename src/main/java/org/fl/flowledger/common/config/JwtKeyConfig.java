@@ -6,7 +6,6 @@ import org.fl.flowledger.common.security.JwtService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -19,6 +18,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.jwt.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtIssuerValidator;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
@@ -33,7 +33,19 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 
-
+/**
+ * Provides the RSA key pair used to sign and verify access tokens.
+ *
+ * If app.jwt.private-key / app.jwt.public-key are configured (PEM strings,
+ * typically injected from a secret store via JWT_PRIVATE_KEY / JWT_PUBLIC_KEY
+ * env vars), those are used, so the same key survives restarts and is shared
+ * across every instance behind a load balancer.
+ *
+ * If they are not set, a key pair is generated in memory as a local-dev-only
+ * fallback. This is NOT suitable for production: tokens won't survive a
+ * restart, and a multi-instance deployment will have each instance signing
+ * with a different key, causing intermittent token-verification failures.
+ */
 @Slf4j
 @Configuration
 public class JwtKeyConfig {
@@ -90,7 +102,13 @@ public class JwtKeyConfig {
                 .withPublicKey((RSAPublicKey) keyPair.getPublic())
                 .build();
 
-
+        // Default validation (NimbusJwtDecoder) already checks exp/nbf with
+        // zero clock skew. We layer on:
+        //  - an issuer check, so a token from another service/environment
+        //    that happened to be signed with this same key pair is rejected
+        //  - 30s of clock-skew tolerance, so slightly-out-of-sync clocks
+        //    between instances don't cause spurious "expired" rejections
+        //    right at the boundary
         OAuth2TokenValidator<Jwt> validator = new DelegatingOAuth2TokenValidator<>(
                 List.of(
                         new JwtIssuerValidator(JwtService.ISSUER),

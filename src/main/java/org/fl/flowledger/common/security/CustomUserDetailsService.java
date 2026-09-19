@@ -20,6 +20,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
+                        // Same message as an actual bad password: never let
+                        // this endpoint reveal whether an email is registered.
                         new UsernameNotFoundException("Invalid email or password")
                 );
 

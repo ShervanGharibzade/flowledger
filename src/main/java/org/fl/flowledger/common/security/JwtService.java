@@ -13,6 +13,11 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class JwtService {
 
+    // Must be a well-formed URL: Spring Security parses the "iss" claim as a
+    // java.net.URL internally, and a bare non-URL string here would make
+    // every token fail to decode. It does not need to resolve to anything
+    // real - it's just a stable identifier that must match what
+    // JwtIssuerValidator checks in JwtKeyConfig.jwtDecoder().
     public static final String ISSUER = "https://flow-ledger.internal";
 
     private static final long ACCESS_TOKEN_TTL_SECONDS = 900; // 15 minutes

@@ -17,6 +17,8 @@ management:
   endpoints:
     web:
       exposure:
+        # Only expose what's needed for health checks / basic diagnostics.
+        # Add endpoints deliberately, don't switch this to "*".
         include: health,info
   endpoint:
     health:
@@ -28,16 +30,22 @@ logging:
     org.fl.flowledger: INFO
 
 app:
+  # RSA key pair (PEM) used to sign/verify access tokens. Required for prod
+  # and for any multi-instance deployment - see JwtKeyConfig for details.
   jwt:
-    private-key:"-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----"
-    public-key:"-----BEGIN PUBLIC KEY-----\nYOUR_PUBLIC_KEY_HERE\n-----END PUBLIC KEY-----"
+    private-key: ${JWT_PRIVATE_KEY:}
+    public-key: ${JWT_PUBLIC_KEY:}
   cookie:
-
+    # Whether the refresh_token cookie requires HTTPS. Keep true everywhere
+    # except local HTTP development.
     secure: ${COOKIE_SECURE:true}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
 ---
+# Local development profile - matches docker-compose.yml defaults so
+# `docker compose up` + this profile works out of the box. Never used
+# automatically outside of an explicit dev/local setup.
 spring:
   config:
     activate:
@@ -63,7 +71,9 @@ app:
     secure: false
 
 ---
-
+# Production profile - every value is sourced from the environment /
+# secret manager. There are intentionally no defaults here: the app should
+# fail to start rather than silently fall back to dev-like settings.
 spring:
   config:
     activate:

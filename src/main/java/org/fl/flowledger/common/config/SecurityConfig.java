@@ -31,6 +31,8 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
 
+    // Comma-separated list of allowed frontend origins. Defaults to a typical
+    // local dev origin; set app.cors.allowed-origins for any other environment.
     @Value("${app.cors.allowed-origins:http://localhost:3000}")
     private String allowedOrigins;
 
@@ -76,6 +78,8 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(
                 List.of("Authorization", "Content-Type", "Idempotency-Key")
         );
+        // Required so the refresh_token cookie is sent on cross-origin requests
+        // from the configured frontend origin(s).
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

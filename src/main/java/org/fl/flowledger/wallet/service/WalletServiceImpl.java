@@ -29,6 +29,9 @@ public class WalletServiceImpl implements WalletService {
     @Transactional
     public WalletResponse create(CreateWalletDto dto, Long userId) {
 
+        // The wallet is always created for the authenticated caller - there
+        // is no "target user" field on the request, so there's nothing to
+        // cross-check against.
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new ResourceNotFoundException("User", userId)
         );

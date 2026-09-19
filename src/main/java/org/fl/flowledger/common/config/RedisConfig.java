@@ -11,6 +11,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 @Configuration
 public class RedisConfig {
 
+    // Dev-only connectivity smoke test; not registered in prod so it doesn't
+    // write a throwaway key or add log noise on every startup.
     @Bean
     @Profile("dev")
     CommandLineRunner testRedis(StringRedisTemplate redisTemplate) {

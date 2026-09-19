@@ -43,6 +43,10 @@ public class RefreshTokenService {
                 REFRESH_TOKEN_TTL
         );
 
+        // Track this token against the user so all of a user's sessions can
+        // be revoked at once (e.g. on password change). Best-effort only:
+        // the set's own TTL is refreshed on every issuance so it doesn't
+        // outlive the tokens it references by much.
         String userKey = userTokensKey(userId);
         redisTemplate.opsForSet().add(userKey, token);
         redisTemplate.expire(userKey, REFRESH_TOKEN_TTL);
@@ -77,13 +81,22 @@ public class RefreshTokenService {
         }
     }
 
-
+    /**
+     * Revokes the given refresh token and issues a brand-new one for the
+     * same user. Called on every /refresh so a stolen-but-unused refresh
+     * token has a short shelf life, and a refresh token that gets replayed
+     * after it was already rotated will simply fail to resolve.
+     */
     public String rotate(String oldRefreshToken, Long userId) {
         revoke(oldRefreshToken);
         return createRefreshToken(userId);
     }
 
-
+    /**
+     * Revokes every refresh token issued to a user, logging out all of their
+     * active sessions/devices. Intended to be called after a password change
+     * or any other event that should force re-authentication everywhere.
+     */
     public void revokeAll(Long userId) {
         String userKey = userTokensKey(userId);
 
